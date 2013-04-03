@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<!-- 3d cube code courtesy of http://desandro.github.com/3dtransforms/docs/cube.html -->
+<!-- tested in chrome and safari -->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Leap Motion Cube</title>
+<script src="leap.js"></script>
+<script src="jquery-1.9.1.min.js"></script>
+
+<style>
+    html {
+        height:100%;
+    }
+    body {
+        height:100%;
+    }
+
+    .corner {
+        margin:auto;
+        width:30px;
+        height:30px;
+        background-color:black;
+        opacity:.2;
+    }
+
+    .cubeRotator {
+        margin-top:250px;
+    }
+
+    .container {
+        width: 200px;
+        height: 200px;
+        position: relative;
+        margin:auto;
+        margin-top:10%;
+        -webkit-perspective: 1000px;
+    }
+
+    #cube {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        -webkit-transform-style: preserve-3d;
+    }
+
+    #cube figure {
+        display: block;
+        position: absolute;
+        width: 196px;
+        height: 196px;
+        border: 2px solid black;
+        line-height: 196px;
+        font-size: 120px;
+        font-weight: bold;
+        color: white;
+        text-align: center;
+        margin:0;
+    }
+
+    #cube .front  { background: hsla(   0, 100%, 50%, 0.5 ); }
+    #cube .back   { background: hsla(  60, 100%, 50%, 0.5 ); }
+    #cube .right  { background: hsla( 120, 100%, 50%, 0.5 ); }
+    #cube .left   { background: hsla( 180, 100%, 50%, 0.5 ); }
+    #cube .top    { background: hsla( 240, 100%, 50%, 0.5 ); }
+    #cube .bottom { background: hsla( 300, 100%, 50%, 0.5 ); }
+
+    #cube .front  { -webkit-transform: rotateY(   0deg ) translateZ( 100px );}
+    #cube .back   { -webkit-transform: rotateX( -180deg ) translateZ( 100px );}
+    #cube .right  { -webkit-transform: rotateY(  90deg ) translateZ( 100px );}
+    #cube .left   { -webkit-transform: rotateY( -90deg ) translateZ( 100px );}
+    #cube .top    { -webkit-transform: rotateX(  90deg ) translateZ( 100px );}
+    #cube .bottom { -webkit-transform: rotateX( -90deg ) translateZ( 100px );}
+
+    #cube { transform: translateZ( -100px ); }
+</style>
+
+<script>
+// Store frame for motion functions
+var previousFrame;
+var paused = false;
+
+var maxHandX = 150.0;
+var maxHandY = 230.0;
+var minHandY = 60.0;
+
+var coordScaleX;
+var coordScaleY;
+
+// Setup Leap loop with frame callback function
+var controllerOptions = {enableGestures: true};
+
+Leap.loop(controllerOptions, function(frame) {
+    if (paused) return;
+
+    if (frame.hands.length > 0) {
+
+        var hand = frame.hands[0];
+        var handX = hand.palmPosition[0];
+        var handY = hand.palmPosition[1];
+
+        if (previousFrame) {
+            var rotationAxis = hand.rotationAxis(previousFrame, 2);
+            var rotationAngle = hand.rotationAngle(previousFrame);
+
+            rotateCube3d(rotationAxis, rotationAngle);
+        }
+    }
+
+    previousFrame = frame;
+});
+
+function rotateCube3d(rotationAxis, rotationAngle) {
+    var angleDegrees = rotationAngle * (180/Math.PI);
+    $('#cube').css({
+        '-webkit-transform': 'rotate3d(' + rotationAxis.join(',') + ', ' + angleDegrees + 'deg)'
+    });
+}
+
+function pause(){
+    paused = true;
+}
+
+function translateCoordinateX(x) {
+    return x * coordScaleX;
+}
+function translateCoordinateY(y) {
+    return (maxHandY - y) * coordScaleY; // - (y * boxModel.screen.coordScaleY);
+}
+
+$(document).ready(function() {
+    var w = $('body').width();
+    var h = $('body').height();
+    coordScaleX = w/maxHandX;
+    coordScaleY = (h/(maxHandY));
+});
+
+</script>
+</head>
+
+<body>
+
+<button class="pause" onclick="pause()">Pause</button>
+
+<section class="container">
+    <div id="cube">
+        <figure class="front">1</figure>
+        <figure class="back">2</figure>
+        <figure class="right">3</figure>
+        <figure class="left">4</figure>
+        <figure class="top">5</figure>
+        <figure class="bottom">6</figure>
+    </div>
+</section>
+
+</body>
+</html>
